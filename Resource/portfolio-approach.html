@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portfolio Building Approach</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;700;800&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0a0a0f;
+  --surface: #111118;
+  --surface-2: #1a1a24;
+  --border: rgba(255,255,255,0.08);
+  --border-hover: rgba(255,255,255,0.18);
+  --text: #e8e6f0;
+  --muted: #6b6880;
+  --accent: #7cfc9f;
+  --accent-2: #fc7c7c;
+  --accent-3: #7cb4fc;
+  --accent-4: #fcdc7c;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Syne', sans-serif;
+  --serif: 'Fraunces', serif;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+/* NOISE TEXTURE */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.4;
+}
+
+/* HEADER */
+.header {
+  padding: 64px 40px 48px;
+  max-width: 1000px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.header-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.header-eyebrow::before {
+  content: '';
+  width: 32px;
+  height: 1px;
+  background: var(--accent);
+}
+
+.header-title {
+  font-family: var(--serif);
+  font-size: clamp(42px, 8vw, 88px);
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+}
+.header-title em {
+  font-style: italic;
+  color: var(--muted);
+}
+
+.header-sub {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 20px;
+  max-width: 500px;
+  line-height: 1.7;
+}
+
+/* PHASE NAV */
+.phase-nav {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 40px 40px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 1;
+}
+.phase-nav-btn {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.2s;
+}
+.phase-nav-btn:hover, .phase-nav-btn.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(124,252,159,0.05);
+}
+
+/* MAIN */
+.main {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 40px 80px;
+  position: relative;
+  z-index: 1;
+}
+
+/* PHASE */
+.phase {
+  margin-bottom: 48px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  transition: border-color 0.3s;
+}
+.phase:hover { border-color: var(--border-hover); }
+
+.phase-header {
+  padding: 24px 28px;
+  background: var(--surface);
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s;
+}
+.phase-header:hover { background: var(--surface-2); }
+
+.phase-num {
+  font-family: var(--serif);
+  font-size: 56px;
+  font-weight: 300;
+  line-height: 1;
+  color: var(--border-hover);
+  min-width: 56px;
+  flex-shrink: 0;
+}
+.phase-info { flex: 1; }
+.phase-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.phase-title {
+  font-family: var(--sans);
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.phase-desc {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.phase-toggle {
+  font-size: 18px;
+  color: var(--muted);
+  transition: transform 0.3s;
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+.phase.open .phase-toggle { transform: rotate(45deg); }
+
+.phase-body {
+  display: none;
+  padding: 28px;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+}
+.phase.open .phase-body { display: block; }
+
+/* STEPS */
+.steps { display: flex; flex-direction: column; gap: 16px; }
+
+.step {
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  gap: 16px;
+  align-items: start;
+}
+.step-num {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.step-content {}
+.step-title {
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+.step-desc {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+/* CODE BLOCK */
+.code-block {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 16px 20px;
+  margin-top: 16px;
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.8;
+  color: var(--text);
+  overflow-x: auto;
+  white-space: pre;
+}
+.code-comment { color: var(--muted); }
+.code-key { color: var(--accent-3); }
+.code-val { color: var(--accent); }
+.code-selector { color: var(--accent-2); }
+.code-property { color: var(--accent-4); }
+
+/* SECTION CARD GRID */
+.section-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+.section-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 16px;
+  transition: border-color 0.2s, transform 0.2s;
+  cursor: pointer;
+}
+.section-card:hover {
+  border-color: var(--border-hover);
+  transform: translateY(-2px);
+}
+.section-card-icon {
+  font-size: 20px;
+  margin-bottom: 10px;
+  display: block;
+}
+.section-card-name {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.section-card-desc {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.section-card-must {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 8px;
+}
+
+/* CSS CONCEPTS GRID */
+.concepts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 8px;
+  margin-top: 16px;
+}
+.concept {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.concept-name {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--accent-3);
+}
+.concept-use {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* CHECKLIST */
+.checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+}
+.check-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text);
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.check-item:hover { border-color: var(--border-hover); }
+.check-item.done { color: var(--muted); text-decoration: line-through; }
+.check-box {
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--border-hover);
+  border-radius: 3px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: var(--accent);
+}
+.check-item.done .check-box {
+  background: rgba(124,252,159,0.1);
+  border-color: var(--accent);
+}
+
+/* DIVIDER */
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 20px 0;
+}
+
+/* TAG */
+.tag {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 2px;
+  margin-right: 4px;
+}
+.tag-green { background: rgba(124,252,159,0.1); color: var(--accent); border: 1px solid rgba(124,252,159,0.2); }
+.tag-blue  { background: rgba(124,180,252,0.1); color: var(--accent-3); border: 1px solid rgba(124,180,252,0.2); }
+.tag-red   { background: rgba(252,124,124,0.1); color: var(--accent-2); border: 1px solid rgba(252,124,124,0.2); }
+.tag-yellow{ background: rgba(252,220,124,0.1); color: var(--accent-4); border: 1px solid rgba(252,220,124,0.2); }
+
+/* STRUCTURE DIAGRAM */
+.structure {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 20px;
+  margin-top: 16px;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.9;
+}
+.tree-line { color: var(--muted); }
+.tree-file { color: var(--text); }
+.tree-comment { color: var(--muted); font-size: 10px; }
+
+/* FOOTER */
+.footer {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 32px 40px 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 16px;
+  position: relative;
+  z-index: 1;
+}
+.footer-text {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 16px;
+  color: var(--muted);
+}
+.footer-btn {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 10px 20px;
+  border: 1px solid var(--accent);
+  background: rgba(124,252,159,0.05);
+  color: var(--accent);
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 0.2s;
+}
+.footer-btn:hover { background: rgba(124,252,159,0.12); }
+
+/* ANIM */
+.phase {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.5s ease, transform 0.5s ease, border-color 0.3s;
+}
+.phase.revealed { opacity: 1; transform: translateY(0); }
+
+@media (max-width: 640px) {
+  .header, .phase-nav, .main, .footer { padding-left: 20px; padding-right: 20px; }
+  .phase-num { font-size: 40px; min-width: 40px; }
+  .header-title { font-size: 40px; }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-eyebrow">Step-by-step guide</div>
+  <h1 class="header-title">Building your<br><em>Portfolio</em></h1>
+  <p class="header-sub">A structured approach — from planning what goes on the page to writing the CSS that makes it unforgettable.</p>
+</header>
+
+<nav class="phase-nav" aria-label="Jump to phase">
+  <button class="phase-nav-btn" onclick="openPhase(0)">01 · Plan</button>
+  <button class="phase-nav-btn" onclick="openPhase(1)">02 · Structure</button>
+  <button class="phase-nav-btn" onclick="openPhase(2)">03 · Sections</button>
+  <button class="phase-nav-btn" onclick="openPhase(3)">04 · CSS concepts</button>
+  <button class="phase-nav-btn" onclick="openPhase(4)">05 · Typography</button>
+  <button class="phase-nav-btn" onclick="openPhase(5)">06 · Responsive</button>
+  <button class="phase-nav-btn" onclick="openPhase(6)">07 · Polish</button>
+  <button class="phase-nav-btn" onclick="openPhase(7)">08 · Launch checklist</button>
+</nav>
+
+<main class="main">
+
+  <!-- PHASE 1: PLAN -->
+  <div class="phase open" id="phase-0">
+    <div class="phase-header" onclick="toggle(0)">
+      <div class="phase-num">01</div>
+      <div class="phase-info">
+        <div class="phase-label" style="color: var(--accent)">Before you write a line of code</div>
+        <div class="phase-title">Plan what goes on the page</div>
+        <div class="phase-desc">Most beginners open a text editor immediately. The ones who build good portfolios plan first.</div>
+      </div>
+      <div class="phase-toggle">+</div>
+    </div>
+    <div class="phase-body">
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-title">Answer the 3 core questions</div>
+            <div class="step-desc">Who will read this? (recruiters, clients, devs) · What action should they take? (hire, contact, follow) · What do you want to be known for?</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-title">Collect your raw material first</div>
+            <div class="step-desc">Write your bio, list your 3–5 best projects, collect screenshots, and draft your contact info — before touching CSS. Empty sections kill momentum.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <div class="step-title">Choose one aesthetic direction and commit</div>
+            <div class="step-desc">Pick: minimal/white space · dark/tech · editorial/typographic · bold/colorful. Half-committed aesthetics look amateur. One direction, executed fully.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <div class="step-title">Sketch the layout on paper first</div>
+            <div class="step-desc">A 5-minute pencil sketch saves hours of CSS rewrites. Draw boxes for each section — don't think about colors yet, just structure.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 2: FILE STRUCTURE -->
+  <div class="phase" id="phase-1">
+    <div class="phase-header" onclick="toggle(1)">
+      <div class="phase-num">02</div>
+      <div class="phase-info">
+        <div class="phase-label" style="color: var(--accent-3)">Project setup</div>
+        <div class="phase-title">File structure & HTML skeleton</div>
+        <div class="phase-desc">Set up clean, organized files from day one — bad habits in structure cause pain later.</div>
+      </div>
+      <div class="phase-toggle">+</div>
+    </div>
+    <div class="phase-body">
+      <div class="structure">
+        <span class="tree-line">portfolio/</span><br>
+        <span class="tree-line">├── </span><span class="tree-file">index.html</span>   <span class="tree-comment">← the whole page</span><br>
+        <span class="tree-line">├── css/</span><br>
+        <span class="tree-line">│   ├── </span><span class="tree-file">reset.css</span>    <span class="tree-comment">← normalize browser defaults</span><br>
+        <span class="tree-line">│   ├── </span><span class="tree-file">variables.css</span><span class="tree-comment">← all colors, fonts, spacing</span><br>
+        <span class="tree-line">│   └── </span><span class="tree-file">style.css</span>    <span class="tree-comment">← all your actual styles</span><br>
+        <span class="tree-line">├── images/</span><br>
+        <span class="tree-line">│   ├── </span><span class="tree-file">avatar.jpg</span><br>
+        <span class="tree-line">│   └── </span><span class="tree-file">project-1.png</span><br>
+        <span class="tree-line">└── </span><span class="tree-file">README.md</span>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="step-title" style="margin-bottom: 12px;">Your HTML skeleton (in order)</div>
+      <div class="code-block"><span class="code-comment">&lt;!-- index.html — write this shell first --&gt;</span>
+<span class="code-key">&lt;body&gt;</span>
+  <span class="code-key">&lt;header&gt;</span>  <span class="tree-comment">← nav + logo</span>
+  <span class="code-key">&lt;main&gt;</span>
+    <span class="code-key">&lt;section id="hero"&gt;</span>     <span class="tree-comment">← name, title, CTA</span>
+    <span class="code-key">&lt;section id="about"&gt;</span>    <span class="tree-comment">← bio + photo</span>
+    <span class="code-key">&lt;section id="skills"&gt;</span>   <span class="tree-comment">← tech you know</span>
+    <span class="code-key">&lt;section id="projects"&gt;</span> <span class="tree-comment">← your 3–5 best</span>
+    <span class="code-key">&lt;section id="contact"&gt;</span>  <span class="tree-comment">← email + links</span>
+  <span class="code-key">&lt;/main&gt;</span>
+  <span class="code-key">&lt;footer&gt;</span>  <span class="tree-comment">← copyright + socials</span>
+<span class="code-key">&lt;/body&gt;</span></div>
+
+      <div class="divider"></div>
+      <div class="step-title" style="margin-bottom: 12px;">Define CSS variables before writing any styles</div>
+      <div class="code-block"><span class="code-comment">/* variables.css — your design system in one file */</span>
+<span class="code-selector">:root</span> {
+  <span class="code-comment">/* Colors */</span>
+  <span class="code-property">--color-bg</span>:       <span class="code-val">#0f0f13</span>;
+  <span class="code-property">--color-surface</span>:  <span class="code-val">#1a1a22</span>;
+  <span class="code-property">--color-text</span>:     <span class="code-val">#e8e6f0</span>;
+  <span class="code-property">--color-muted</span>:    <span class="code-val">#6b6880</span>;
+  <span class="code-property">--color-accent</span>:   <span class="code-val">#7cfc9f</span>;
+
+  <span class="code-comment">/* Typography */</span>
+  <span class="code-property">--font-display</span>:  <span class="code-val">'Syne', sans-serif</span>;
+  <span class="code-property">--font-body</span>:     <span class="code-val">'Fraunces', serif</span>;
+
+  <span class="code-comment">/* Spacing scale */</span>
+  <span class="code-property">--space-sm</span>:  <span class="code-val">8px</span>;
+  <span class="code-property">--space-md</span>: <span class="code-val">16px</span>;
+  <span class="code-property">--space-lg</span>: <span class="code-val">32px</span>;
+  <span class="code-property">--space-xl</span>: <span class="code-val">64px</span>;
+
+  <span class="code-comment">/* Max width */</span>
+  <span class="code-property">--container</span>: <span class="code-val">1000px</span>;
+}</div>
+    </div>
+  </div>
+
+  <!-- PHASE 3: SECTIONS -->
+  <div class="phase" id="phase-2">
+    <div class="phase-header" onclick="toggle(2)">
+      <div class="phase-num">03</div>
+      <div class="phase-info">
+        <div class="phase-label" style="color: var(--accent-2)">Content architecture</div>
+        <div class="phase-title">What goes in each section</div>
+        <div class="phase-desc">Every section has a job. Know what that job is before you style it.</div>
+      </div>
+      <div class="phase-toggle">+</div>
+    </div>
+    <div class="phase-body">
+      <div class="section-grid">
+        <div class="section-card" onclick="go('How do I build a hero section for a portfolio with HTML and CSS?')">
+          <span class="section-card-icon">⚡</span>
+          <div class="section-card-name">Hero</div>
+          <div class="section-card-desc">Your name, one-line title, and a single CTA button. Nothing else. Recruiters decide in 3 seconds.</div>
+          <div class="section-card-must"><span class="tag tag-red">Must have</span> Name · Role · CTA</div>
+        </div>
+        <div class="section-card" onclick="go('How do I build an about section for a portfolio with a photo and bio in CSS?')">
+          <span class="section-card-icon">👤</span>
+          <div class="section-card-name">About</div>
+          <div class="section-card-desc">2–3 sentences max. Photo optional. Answer: who you are, what you build, and what drives you.</div>
+          <div class="section-card-must"><span class="tag tag-blue">Include</span> Bio · Photo · Personality</div>
+        </div>
+        <div class="section-card" onclick="go('How do I build a skills section for a portfolio using CSS Grid and tag pills?')">
+          <span class="section-card-icon">🛠</span>
+          <div class="section-card-name">Skills</div>
+          <div class="section-card-desc">Don't use progress bars — they're meaningless. Use tag pills or grouped lists by category.</div>
+          <div class="section-card-must"><span class="tag tag-blue">Include</span> Tags · Categories</div>
+        </div>
+        <div class="section-card" onclick="go('How do I build a projects section for a portfolio with cards, screenshots, and links?')">
+          <span class="section-card-icon">🗂</span>
+          <div class="section-card-name">Projects</div>
+          <div class="section-card-desc">3–5 projects max. Each needs: screenshot, title, one-line desc, tech stack tags, and 2 links (live + GitHub).</div>
+          <div class="section-card-must"><span class="tag tag-red">Must have</span> Screenshot · Links</div>
+        </div>
+        <div class="section-card" onclick="go('How do I build a contact section for a portfolio with an email link and social icons?')">
+          <span class="section-card-icon">✉️</span>
+          <div class="section-card-name">Contact</div>
+          <div class="section-card-desc">A single mailto link is enough. Add GitHub, LinkedIn, and Twitter/X. Keep it dead simple.</div>
+          <div class="section-card-must"><span class="tag tag-red">Must have</span> Email · GitHub</div>
+        </div>
+        <div class="section-card" onclick="go('How do I build a sticky navigation bar for a portfolio that highlights active section on scroll?')">
+          <span class="section-card-icon">🧭</span>
+          <div class="section-card-name">Navigation</div>
+          <div class="section-card-desc">Sticky or fixed nav. Logo/name on left, 4–5 links on right. Smooth scroll to section anchors.</div>
+          <div class="section-card-must"><span class="tag tag-yellow">Optional</span> Sticky · Smooth scroll</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 4: CSS CONCEPTS -->
+  <div class="phase" id="phase-3">
+    <div class="phase-header" onclick="toggle(3)">
+      <div class="phase-num">04</div>
+      <div class="phase-info">
+        <div class="phase-label" style="color: var(--accent-4)">Core CSS skills</div>
+        <div class="phase-title">CSS concepts you will use</div>
+        <div class="phase-desc">These are not optional. Every section of a portfolio exercises these. Learn them in this order.</div>
+      </div>
+      <div class="phase-toggle">+</div>
+    </div>
+    <div class="phase-body">
+      <div class="concepts-grid">
+        <div class="concept">
+          <div class="concept-name">Box model</div>
+          <div class="concept-use">padding, margin, border, width. Every element on the page.</div>
+        </div>
+        <div class="concept">
+          <div class="concept-name">Flexbox</div>
+          <div class="concept-use">Nav bar, hero layout, skills tags row, project card footer.</div>
+        </div>
+        <div class="concept">
+          <div class="concept-name">CSS Grid</div>
+          <div class="concept-use">Projects card grid, skills category layout, about two-column.</div>
+        </div>
+        <div class="concept">
+          <div class="concept-name">Position</div>
+          <div class="concept-use">Sticky nav, fixed CTA button, absolute badges on cards.</div>
+        </div>
+        <div class="concept">
+          <div class="concept-name">Custom props</div>
+          <div class="concept-use">--color-accent, --font-body. Define once, use everywhere.</div>
+        </div>
+        <div class="concept">
+          <div class="concept-name">Transitions</div>
+          <div class="concept-use">Hover effects on buttons, links, cards. 200–300ms ease.</div>
+        </div>
+        <div class="concept">
+          <div class="concept-name">:hover / :focus</div>
+          <div class="concept-use">Button hover states. Always style :focus for accessibility.</div>
+        </div>
+        <div class="concept">
+          <div class="concept-name">Pseudo-elements</div>
+          <div class="concept-use">::before for decorative lines, dividers, accent marks.</div>
+        </div>
+        <div class="concept">
+          <div class="concept-name">z-index</div>
+          <div class="concept-use">Keep nav above content. Use a scale: 10, 100, 1000.</div>
+        </div>
+        <div class="concept">
+          <div class="concept-name">overflow: hidden</div>
+          <div class="concept-use">Clip images in cards. Prevent horizontal scroll on mobile.</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="step-title" style="margin-bottom: 12px;">Build your nav bar — the first real CSS challenge</div>
+      <div class="code-block"><span class="code-comment">/* A clean sticky nav — practice box model + flexbox */</span>
+<span class="code-selector">nav</span> {
+  <span class="code-property">position</span>:   <span class="code-val">sticky</span>;
+  <span class="code-property">top</span>:        <span class="code-val">0</span>;
+  <span class="code-property">z-index</span>:    <span class="code-val">100</span>;
+  <span class="code-property">display</span>:    <span class="code-val">flex</span>;
+  <span class="code-property">justify-content</span>: <span class="code-val">space-between</span>;
+  <span class="code-property">align-items</span>: <span class="code-val">center</span>;
+  <span class="code-property">padding</span>:    <span class="code-val">16px 40px</span>;
+  <span class="code-property">background</span>: <span class="code-val">var(--color-bg)</span>;
+  <span class="code-property">border-bottom</span>: <span class="code-val">1px solid rgba(255,255,255,0.08)</span>;
+}
+
+<span class="code-selector">nav a</span> {
+  <span class="code-property">font-family</span>:     <span class="code-val">var(--font-body)</span>;
+  <span class="code-property">font-size</span>:       <span class="code-val">14px</span>;
+  <span class="code-property">color</span>:           <span class="code-val">var(--color-muted)</span>;
+  <span class="code-property">text-decoration</span>: <span class="code-val">none</span>;
+  <span class="code-property">transition</span>:      <span class="code-val">color 0.2s ease</span>;
+}
+<span class="code-selector">nav a:hover</span> {
+  <span class="code-property">color</span>: <span class="code-val">var(--color-accent)</span>;
+}</div>
+    </div>
+  </div>
+
+  <!-- PHASE 5: TYPOGRAPHY -->
+  <div class="phase" id="phase-4">
+    <div class="phase-header" onclick="toggle(4)">
+      <div class="phase-num">05</div>
+      <div class="phase-info">
+        <div class="phase-label" style="color: var(--accent)">Visual identity</div>
+        <div class="phase-title">Typography — the single biggest impact</div>
+        <div class="phase-desc">Font choice is 60% of your portfolio's personality. Don't use Inter. Don't use Arial. Pick something with character.</div>
+      </div>
+      <div class="phase-toggle">+</div>
+    </div>
+    <div class="phase-body">
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-title">Use a font pairing — one display, one body</div>
+            <div class="step-desc">Display font: for your name and section headings — make it big, make it yours. Body font: for descriptions, bio, and paragraph text — should be highly readable.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-grid" style="margin-top: 16px; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));">
+        <div class="section-card">
+          <div class="section-card-name" style="font-family: 'Syne', sans-serif; font-size: 18px;">Syne</div>
+          <div class="section-card-desc">Geometric display. Strong personality. Great for tech portfolios.</div>
+          <div class="section-card-must"><span class="tag tag-green">Display</span></div>
+        </div>
+        <div class="section-card">
+          <div class="section-card-name" style="font-family: 'Fraunces', serif; font-style: italic; font-size: 18px;">Fraunces</div>
+          <div class="section-card-desc">Optical size serif. Elegant and warm. Pairs with anything geometric.</div>
+          <div class="section-card-must"><span class="tag tag-blue">Body</span></div>
+        </div>
+        <div class="section-card">
+          <div class="section-card-name" style="font-family: 'JetBrains Mono', monospace; font-size: 16px;">JetBrains Mono</div>
+          <div class="section-card-desc">For code snippets, tech tags, and labels. Instantly signals developer.</div>
+          <div class="section-card-must"><span class="tag tag-yellow">Mono</span></div>
+        </div>
+        <div class="section-card">
+          <div class="section-card-name" style="font-size: 18px; font-weight: 700; letter-spacing: -0.04em;">Clash Display</div>
+          <div class="section-card-desc">Variable display font. Very modern. Use for hero headline only.</div>
+          <div class="section-card-must"><span class="tag tag-green">Display</span></div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="code-block"><span class="code-comment">/* Type scale — define once, use everywhere */</span>
+<span class="code-selector">:root</span> {
+  <span class="code-property">--text-xs</span>:  <span class="code-val">11px</span>;   <span class="code-comment">/* labels, tags */</span>
+  <span class="code-property">--text-sm</span>:  <span class="code-val">14px</span>;   <span class="code-comment">/* body text */</span>
+  <span class="code-property">--text-md</span>:  <span class="code-val">18px</span>;   <span class="code-comment">/* section intros */</span>
+  <span class="code-property">--text-lg</span>:  <span class="code-val">28px</span>;   <span class="code-comment">/* section headings */</span>
+  <span class="code-property">--text-xl</span>:  <span class="code-val">56px</span>;   <span class="code-comment">/* hero name */</span>
+  <span class="code-property">--text-2xl</span>: <span class="code-val">88px</span>;   <span class="code-comment">/* hero name — large screens */</span>
+}
+
+<span class="code-selector">h1</span> {
+  <span class="code-property">font-family</span>: <span class="code-val">var(--font-display)</span>;
+  <span class="code-property">font-size</span>:   <span class="code-val">clamp(48px, 10vw, 88px)</span>; <span class="code-comment">/* fluid! */</span>
+  <span class="code-property">line-height</span>: <span class="code-val">0.95</span>;
+  <span class="code-property">letter-spacing</span>: <span class="code-val">-0.03em</span>;
+}</div>
+    </div>
+  </div>
+
+  <!-- PHASE 6: RESPONSIVE -->
+  <div class="phase" id="phase-5">
+    <div class="phase-header" onclick="toggle(5)">
+      <div class="phase-num">06</div>
+      <div class="phase-info">
+        <div class="phase-label" style="color: var(--accent-3)">Mobile-first</div>
+        <div class="phase-title">Responsive design approach</div>
+        <div class="phase-desc">Recruiters check portfolios on phones. If it breaks below 390px, you've already lost.</div>
+      </div>
+      <div class="phase-toggle">+</div>
+    </div>
+    <div class="phase-body">
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-title">Write mobile styles first, desktop second</div>
+            <div class="step-desc">Default styles = mobile (single column, full width). Then use min-width media queries to enhance for larger screens. This is mobile-first.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-title">Use only 2 breakpoints for a portfolio</div>
+            <div class="step-desc">640px (tablet) and 1024px (desktop) are enough. Don't overthink it. Most portfolios only need one breakpoint.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <div class="step-title">Use clamp() for fluid typography</div>
+            <div class="step-desc">Instead of writing media queries just for font sizes, use clamp(min, fluid, max). It scales smoothly between any screen size.</div>
+          </div>
+        </div>
+      </div>
+      <div class="code-block"><span class="code-comment">/* Projects grid — mobile first */</span>
+<span class="code-selector">.projects-grid</span> {
+  <span class="code-property">display</span>:               <span class="code-val">grid</span>;
+  <span class="code-property">grid-template-columns</span>: <span class="code-val">1fr</span>;         <span class="code-comment">/* 1 col on mobile */</span>
+  <span class="code-property">gap</span>:                   <span class="code-val">20px</span>;
+}
+
+<span class="code-selector">@media (min-width: 640px)</span> {
+  <span class="code-selector">.projects-grid</span> {
+    <span class="code-property">grid-template-columns</span>: <span class="code-val">repeat(2, 1fr)</span>; <span class="code-comment">/* 2 cols */</span>
+  }
+}
+
+<span class="code-selector">@media (min-width: 1024px)</span> {
+  <span class="code-selector">.projects-grid</span> {
+    <span class="code-property">grid-template-columns</span>: <span class="code-val">repeat(3, 1fr)</span>; <span class="code-comment">/* 3 cols */</span>
+  }
+}
+
+<span class="code-comment">/* Or use auto-fit (no media queries needed!) */</span>
+<span class="code-selector">.projects-grid</span> {
+  <span class="code-property">grid-template-columns</span>: <span class="code-val">repeat(auto-fit, minmax(280px, 1fr))</span>;
+}</div>
+    </div>
+  </div>
+
+  <!-- PHASE 7: POLISH -->
+  <div class="phase" id="phase-6">
+    <div class="phase-header" onclick="toggle(6)">
+      <div class="phase-num">07</div>
+      <div class="phase-info">
+        <div class="phase-label" style="color: var(--accent-2)">Finishing touches</div>
+        <div class="phase-title">Polish — what separates good from great</div>
+        <div class="phase-desc">Polish is the gap between "it works" and "it's impressive". These are the details that matter.</div>
+      </div>
+      <div class="phase-toggle">+</div>
+    </div>
+    <div class="phase-body">
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-title">Add a page load animation</div>
+            <div class="step-desc">Staggered fade-in on sections as they enter the viewport using IntersectionObserver + CSS animation-delay. One animation done well beats ten mediocre ones.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-title">Hover states on every interactive element</div>
+            <div class="step-desc">Every button, link, card, and icon needs a hover state. Use transition: all 0.2s ease. This is the #1 thing that makes a portfolio feel alive.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <div class="step-title">Consistent spacing rhythm</div>
+            <div class="step-desc">Use multiples of 8px everywhere (8, 16, 24, 32, 48, 64, 96). Inconsistent spacing is the most common beginner mistake — it looks "off" even if you can't explain why.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <div class="step-title">Add a custom scrollbar</div>
+            <div class="step-desc">A one-liner that shows you care. ::-webkit-scrollbar with your accent color makes the page feel fully designed.</div>
+          </div>
+        </div>
+      </div>
+      <div class="code-block"><span class="code-comment">/* Scroll-triggered fade-in — JS + CSS */</span>
+<span class="code-selector">.section</span> {
+  <span class="code-property">opacity</span>:   <span class="code-val">0</span>;
+  <span class="code-property">transform</span>: <span class="code-val">translateY(24px)</span>;
+  <span class="code-property">transition</span>: <span class="code-val">opacity 0.6s ease, transform 0.6s ease</span>;
+}
+<span class="code-selector">.section.visible</span> {
+  <span class="code-property">opacity</span>:   <span class="code-val">1</span>;
+  <span class="code-property">transform</span>: <span class="code-val">translateY(0)</span>;
+}
+
+<span class="code-comment">/* In JS */</span>
+<span class="code-key">const</span> observer = <span class="code-val">new</span> IntersectionObserver(entries => {
+  entries.forEach(e => {
+    <span class="code-key">if</span> (e.isIntersecting) e.target.classList.add(<span class="code-val">'visible'</span>);
+  });
+}, { threshold: <span class="code-val">0.1</span> });
+
+document.querySelectorAll(<span class="code-val">'.section'</span>).forEach(s => observer.observe(s));
+
+<span class="code-comment">/* Custom scrollbar */</span>
+<span class="code-selector">::-webkit-scrollbar</span>       { <span class="code-property">width</span>: <span class="code-val">6px</span>; }
+<span class="code-selector">::-webkit-scrollbar-track</span> { <span class="code-property">background</span>: <span class="code-val">var(--color-bg)</span>; }
+<span class="code-selector">::-webkit-scrollbar-thumb</span> { <span class="code-property">background</span>: <span class="code-val">var(--color-accent)</span>; <span class="code-property">border-radius</span>: <span class="code-val">3px</span>; }</div>
+    </div>
+  </div>
+
+  <!-- PHASE 8: CHECKLIST -->
+  <div class="phase" id="phase-7">
+    <div class="phase-header" onclick="toggle(7)">
+      <div class="phase-num">08</div>
+      <div class="phase-info">
+        <div class="phase-label" style="color: var(--accent)">Pre-launch</div>
+        <div class="phase-title">Launch checklist</div>
+        <div class="phase-desc">Don't publish until every item is checked. These are the things that actually get you hired.</div>
+      </div>
+      <div class="phase-toggle">+</div>
+    </div>
+    <div class="phase-body">
+      <div class="checklist" id="checklist">
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div>All project links open (no 404s)</div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div>Mobile layout tested at 390px width</div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div>Email link in contact section works (mailto:)</div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div>GitHub link opens your real profile</div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div>All images have alt text</div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div>Page title is your name + role (not "My Portfolio")</div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div>favicon.ico added (even a simple one)</div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div>Smooth scroll works for nav links</div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div>No placeholder text left ("Lorem ipsum")</div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div>Tested in Chrome and Firefox</div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div>Deployed to Vercel, Netlify, or GitHub Pages</div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div>Custom domain set up (optional but impressive)</div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer class="footer">
+  <p class="footer-text">"A portfolio is never finished — it is only abandoned when it is good enough to ship."</p>
+  <button class="footer-btn" onclick="go('Build me a complete personal portfolio HTML and CSS from scratch with hero, about, projects, and contact sections')">Generate my portfolio →</button>
+</footer>
+
+<script>
+function go(p) { if (typeof sendPrompt === 'function') sendPrompt(p); }
+
+function toggle(i) {
+  const phase = document.getElementById('phase-' + i);
+  phase.classList.toggle('open');
+}
+
+function openPhase(i) {
+  const phase = document.getElementById('phase-' + i);
+  if (!phase.classList.contains('open')) phase.classList.add('open');
+  phase.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function toggleCheck(el) {
+  el.classList.toggle('done');
+  const box = el.querySelector('.check-box');
+  box.textContent = el.classList.contains('done') ? '✓' : '';
+}
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('revealed'), i * 80);
+      observer.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.05 });
+
+document.querySelectorAll('.phase').forEach(p => observer.observe(p));
+</script>
+</body>
+</html>
